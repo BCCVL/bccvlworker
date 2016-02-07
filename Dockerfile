@@ -19,6 +19,7 @@ WORKDIR $WORKER_HOME
 RUN pip2.7 install setuptools==19.6.1
 RUN pip2.7 install -r requirements.txt
 
+ENV CELERY_JSON_CONFIG $WORKER_CONF/celery.json
 ENV WORKDIR /var/opt/worker
 RUN mkdir -p $WORKDIR && \
     chown -R worker:worker $WORKDIR

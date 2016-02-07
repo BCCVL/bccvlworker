@@ -10,6 +10,8 @@ Depending on environment, it amy be necessary to overrid the Celery configuratio
 
 If running multiple instances of thes container it is also necessary to apapt the command line options. i.e. --hostname
 
+The worker reads the configuration from $CELER_JSON_CONFIG.
+
 Data Storage
 ------------
 
