@@ -35,7 +35,11 @@ netaddr==0.7.18
 msgpack-python==0.4.7
 monotonic==0.6
 netifaces==0.10.4
--f https://github.com/BCCVL/org.bccvl.movelib/archive/1.1.0.tar.gz#egg=org.bccvl.movelib-1.1.0
-org.bccvl.movelib[http,scp,swift]==1.1.0
--f https://github.com/BCCVL/org.bccvl.tasks/archive/1.10.0.tar.gz#egg=org.bccvl.tasks-1.10.0
-org.bccvl.tasks[metadata]==1.10.0
+requests_oauthlib==0.6.0
+google-api-python-client==1.4.1
+dropbox==3.23
+# The following packages are installed in Dockerfile, otherwise pip is not able to install them
+#-f https://github.com/BCCVL/org.bccvl.movelib/archive/1.1.0.tar.gz#egg=org.bccvl.movelib-1.1.0
+#org.bccvl.movelib[http,scp,swift]==1.1.0
+#-f https://github.com/BCCVL/org.bccvl.tasks/archive/1.10.0.tar.gz#egg=org.bccvl.tasks-1.10.0
+#org.bccvl.tasks[metadata]==1.10.0
