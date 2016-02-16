@@ -12,7 +12,6 @@ RUN groupadd -g 415 worker && \
     useradd -u 415 -g 415 -d $WORKER_HOME -m -s /bin/bash worker
 
 COPY files/requirements.txt $WORKER_HOME/
-COPY files/celery.json $WORKER_CONF/
 
 WORKDIR $WORKER_HOME
 
@@ -21,7 +20,9 @@ RUN pip2.7 install -r requirements.txt && \
     pip2.7 install -f https://github.com/BCCVL/org.bccvl.movelib/archive/1.1.0.tar.gz#egg=org.bccvl.movelib-1.1.0 org.bccvl.movelib[http,scp,swift]==1.1.0 && \
     pip2.7 install -f https://github.com/BCCVL/org.bccvl.tasks/archive/1.10.0.tar.gz#egg=org.bccvl.tasks-1.10.0 org.bccvl.tasks[metadata]==1.10.0
 
-ENV CELERY_JSON_CONFIG $WORKER_CONF/celery.json
+ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
+COPY files/bccvl.ini $BCCVL_CONFIG
+
 ENV WORKDIR /var/opt/worker
 RUN mkdir -p $WORKDIR && \
     chown -R worker:worker $WORKDIR
