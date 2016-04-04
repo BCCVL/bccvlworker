@@ -1,4 +1,4 @@
-FROM hub.bccvl.org.au/bccvl/workerbase:1.0.0
+FROM hub.bccvl.org.au/bccvl/workerbase:1.1.0
 
 RUN yum install -y git python-devel gmp-devel gdal-python exempi-devel && \
     yum clean all
