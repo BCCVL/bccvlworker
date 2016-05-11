@@ -18,7 +18,7 @@ WORKDIR $WORKER_HOME
 RUN pip2.7 install setuptools==19.6.1
 RUN pip2.7 install -r requirements.txt && \
     pip2.7 install -f https://github.com/BCCVL/org.bccvl.movelib/archive/1.2.0.tar.gz#egg=org.bccvl.movelib-1.2.0 org.bccvl.movelib[http,scp,swift]==1.2.0 && \
-    pip2.7 install -f https://github.com/BCCVL/org.bccvl.tasks/archive/1.11.0.tar.gz#egg=org.bccvl.tasks-1.11.0 org.bccvl.tasks[metadata]==1.12.0
+    pip2.7 install -f https://github.com/BCCVL/org.bccvl.tasks/archive/1.11.0.tar.gz#egg=org.bccvl.tasks-1.11.0 org.bccvl.tasks[metadata]==1.11.0
 
 ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
 COPY files/bccvl.ini $BCCVL_CONFIG
