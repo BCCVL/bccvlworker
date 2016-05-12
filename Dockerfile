@@ -24,8 +24,9 @@ ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
 COPY files/bccvl.ini $BCCVL_CONFIG
 
 ENV WORKDIR /var/opt/worker
-COPY files/celeryconfig.py $WORKDIR/
 RUN mkdir -p $WORKDIR && \
     chown -R worker:worker $WORKDIR
+
+COPY files/celeryconfig.py $WORER_HOME/
 
 CMD celery worker --app=org.bccvl.tasks --queues=worker --hostname=worker@bccvl -I org.bccvl.tasks.compute --uid=415 --gid=415
