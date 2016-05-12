@@ -24,6 +24,7 @@ ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
 COPY files/bccvl.ini $BCCVL_CONFIG
 
 ENV WORKDIR /var/opt/worker
+COPY files/celeryconfig.py $WORKDIR
 RUN mkdir -p $WORKDIR && \
     chown -R worker:worker $WORKDIR
 
