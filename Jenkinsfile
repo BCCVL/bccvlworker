@@ -19,6 +19,6 @@ node {
     // publish image to registry
     stage 'Publish'
 
-    def imagetag = 1.13.2
+    def imagetag = "1.13.2"
     img.push(imagetag)
 }
