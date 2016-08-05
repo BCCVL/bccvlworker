@@ -4,7 +4,7 @@
 chown -R worker:worker "${WORKDIR}"
 
 # ensure SSL key files have proper permissions
-if [ -z "${BROKER_USE_SSL_KEYFILE}" ] ; do
+if [ -z "${BROKER_USE_SSL_KEYFILE}" ] ; then
   chmod 600 "${BROKER_USE_SSL_KEYFILE}"
 fi
 
