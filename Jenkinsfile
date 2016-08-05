@@ -21,4 +21,7 @@ node {
 
     def imagetag = "1.13.2"
     img.push(imagetag)
+
+    slackSend color: 'good', message: "New Image ${imagename}:${imagetag}\n${env.JOB_URL}"
+
 }
