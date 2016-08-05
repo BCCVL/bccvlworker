@@ -31,6 +31,8 @@ RUN mkdir -p $WORKDIR && \
 COPY files/celeryconfig.py $WORKER_HOME/
 COPY files/entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
-CMD celery worker --app=org.bccvl.tasks --queues=worker --hostname=worker@%h -I org.bccvl.tasks.compute --uid=worker --gid=worker
+CMD ["celery worker", "--app=org.bccvl.tasks", "--queues=worker",
+     "--hostname=worker@%h", "-I", "org.bccvl.tasks.compute",
+     "--uid=worker", "--gid=worker"]
