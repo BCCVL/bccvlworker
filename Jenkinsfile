@@ -15,8 +15,8 @@ node {
     stage 'Test'
 
     docker.image(imagename).inside("-u root") {
-        pip install nose2 cov-core mock
-        nosetests --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl
+        sh('pip install nose2 cov-core mock')
+        sh('nosetests --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl')
 
         // capture unit test outputs in jenkins
         step([$class: 'JUnitResultArchiver', testResults: 'nosetests.xml'])
