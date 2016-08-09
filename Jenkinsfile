@@ -34,7 +34,7 @@ node {
 
             def imagetag = getPipVersion("org.bccvl.tasks")
             img.push(imagetag)
-            img.push('latest')
+            //img.push('latest')
 
             slackSend color: 'good', message: "New Image ${imagename}:${imagetag}\n${env.JOB_URL}"
 
