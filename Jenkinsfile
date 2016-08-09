@@ -22,7 +22,7 @@ node {
         step([$class: 'JUnitResultArchiver', testResults: 'nosetests.xml'])
 
         // capture coverage report
-        publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
+        publishHTML(target:[allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
     }
 
     // publish image to registry
