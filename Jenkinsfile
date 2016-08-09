@@ -41,36 +41,35 @@ node {
             break
     }
 
-    switch(env.BRANCH_NAME) {
+}
 
-        case 'master':
+switch(env.BRANCH_NAME) {
 
-            stage 'Approve'
+    case 'master':
 
-            mail(to: 'g.weis@griffith.edu.au',
-                 subject: "Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is waiting for input",
-                 body: "Please go to ${env.BUILD_URL}.");
+        stage 'Approve'
 
-            slackSend color: 'good', message: "Ready to deploy ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        mail(to: 'g.weis@griffith.edu.au',
+             subject: "Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is waiting for input",
+             body: "Please go to ${env.BUILD_URL}.");
 
-            input 'Ready to deploy?';
+        slackSend color: 'good', message: "Ready to deploy ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
 
-        case 'develop':
-        case 'qa':
+        input 'Ready to deploy?';
 
-            stage 'Deploy'
+    case 'develop':
+    case 'qa':
 
-            node {
+        stage 'Deploy'
 
-                deploy("Worker", env.BRANCH_NAME, imagename)
+        node {
 
-                slackSend color: 'good', message: "Deployed ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+            deploy("Worker", env.BRANCH_NAME, imagename)
 
-            }
+            slackSend color: 'good', message: "Deployed ${env.JOB_NAME} ${env.BUILD_NUMBER}"
 
-            break
+        }
 
-    }
-
+        break
 
 }
