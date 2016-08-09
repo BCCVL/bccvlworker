@@ -1,4 +1,7 @@
 
+def imagename;
+def imagetag;
+
 node {
     // fetch source
     stage 'Checkout'
@@ -8,13 +11,16 @@ node {
     // build image
     stage 'Build Image'
 
-    def imagename = 'hub.bccvl.org.au/bccvl/bccvlworker'
+    imagename = 'hub.bccvl.org.au/bccvl/bccvlworker'
     def img = docker.build(imagename)
 
     // test image
     stage 'Test'
 
     docker.image(imagename).inside("-u root") {
+
+        imagetag = getPipVersion("org.bccvl.tasks")
+
         sh('pip install nose2 cov-core mock')
         sh('nosetests --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl')
 
@@ -32,7 +38,6 @@ node {
         case 'qa':
             stage 'Image Push'
 
-            def imagetag = getPipVersion("org.bccvl.tasks")
             img.push(imagetag)
             //img.push('latest')
 
@@ -64,7 +69,7 @@ switch(env.BRANCH_NAME) {
 
         node {
 
-            deploy("Worker", env.BRANCH_NAME, imagename)
+            deploy("Worker", env.BRANCH_NAME, "${imagename}:${imagetag}")
 
             slackSend color: 'good', message: "Deployed ${env.JOB_NAME} ${env.BUILD_NUMBER}"
 
