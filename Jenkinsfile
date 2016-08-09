@@ -20,6 +20,7 @@ node {
     docker.image(imagename).inside("-u root") {
 
         imagetag = getPipVersion("org.bccvl.tasks")
+        echo "ImageTag ${imagetag}"
 
         sh('pip install nose2 cov-core mock')
         sh('nosetests --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl')
