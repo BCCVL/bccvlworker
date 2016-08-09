@@ -19,8 +19,8 @@ node {
 
     docker.image(imagename).inside("-u root") {
 
-        imagetag = getPipVersion("org.bccvl.tasks")
-        echo "ImageTag ${imagetag}"
+        // capture installed package versions and store in workspace
+        sh('pip freeze > versions.txt')
 
         sh('pip install nose2 cov-core mock')
         sh('nosetests --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl')
@@ -31,6 +31,8 @@ node {
         // capture coverage report
         publishHTML(target:[allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
     }
+
+    imagetag = getPipVersion("versions.txt", "org.bccvl.tasks")
 
     // publish image to registry
     switch(env.BRANCH_NAME) {
