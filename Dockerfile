@@ -1,4 +1,4 @@
-FROM hub.bccvl.org.au/bccvl/workerbase:2016-08-04
+FROM hub.bccvl.org.au/bccvl/workerbase:2016-10-04
 
 RUN yum install -y git python-devel gmp-devel gdal-python exempi-devel && \
     yum clean all
@@ -30,6 +30,7 @@ COPY files/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
+# TODO: celery itself should start as worker
 CMD ["celery", "worker", "--app=org.bccvl.tasks", "--queues=worker", \
      "--hostname=worker@%h", "-I", "org.bccvl.tasks.compute", \
      "--uid=worker", "--gid=worker"]
