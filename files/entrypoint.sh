@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # make sure our celery worker has access to scratch space ${WORKDIR}
+mkdir -p "${WORKDIR}"
 chown -R worker:worker "${WORKDIR}"
 
 # ensure SSL key files have proper permissions
