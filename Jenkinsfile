@@ -60,7 +60,7 @@ node {
         publishHTML(target:[allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
     }
 
-    imagetag = getPipVersion("versions.txt", "org.bccvl.tasks")
+    imagetag = getPythonVersion("src/org.bccvl.tasks/setup.py")
 
     // publish image to registry
     switch(env.BRANCH_NAME) {
