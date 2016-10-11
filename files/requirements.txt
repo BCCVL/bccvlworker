@@ -40,8 +40,3 @@ google-api-python-client==1.4.1
 dropbox==3.23
 numpy==1.11.1
 scipy==0.12.1
-# Install our packages
---find-links https://api.github.com/BCCVL/org.bccvl.movelib/tarball/1.3.2#egg=org.bccvl.movelib-1.3.2
-org.bccvl.movelib[http,scp,swift]==1.3.2
---find-links https://api.github.com/BCCVL/org.bccvl.tasks/tarball/1.13.2#egg=org.bccvl.tasks-1.13.2
-org.bccvl.tasks[metadata]==1.13.2

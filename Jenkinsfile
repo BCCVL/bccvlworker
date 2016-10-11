@@ -6,7 +6,31 @@ node {
     // fetch source
     stage 'Checkout'
 
+    // check out main repo
     checkout scm
+
+    // clone depentent repos
+    // map sub repos to branch/tag refs
+    def subrepos = [
+        'org.bccvl.movelib': 'refs/heads/develop',
+        'org.bccvl.tasks': 'refs/heads/develop'
+    ]
+    // iterate over map and clone into current workspace subfolder
+    for (repo in subrepos) {
+        checkout(poll: false,
+                 scm: [$class: 'GitSCM',
+                       branches: [[name: repo.value]],
+                       extensions: [
+                           [$class: 'RelativeTargetDirectory', relativeTargetDir: "src/${repo.key}"],
+                           [$class: 'CleanBeforeCheckout'],
+                           [$class: 'PruneStaleBranch']
+                        ],
+                        userRemoteConfigs: [
+                            [url: "https://github.com/BCCVL/${repo.key}"]
+                        ]
+                    ]
+                )
+    }
 
     // build image
     stage 'Build Image'
@@ -37,12 +61,14 @@ node {
     // publish image to registry
     switch(env.BRANCH_NAME) {
         case 'develop':
+
+            img.push('latest')
+
         case 'master':
         case 'qa':
             stage 'Image Push'
 
             img.push(imagetag)
-            //img.push('latest')
 
             slackSend color: 'good', message: "New Image ${imagename}:${imagetag}\n${env.JOB_URL}"
 

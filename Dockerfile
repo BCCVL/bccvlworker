@@ -18,6 +18,11 @@ WORKDIR $WORKER_HOME
 RUN pip2.7 --no-cache-dir install --upgrade setuptools && \
     pip2.7 --no-cache-dir install -r requirements.txt
 
+COPY src $WORKER_HOME/
+
+RUN pip2.7 --no-cache-dir install -e org.bccvl.movelib/[http,scp,swift]
+RUN pip2.7 --no-cache-dir install -e org.bccvl.tasks/[metadata]
+
 ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
 COPY files/bccvl.ini $BCCVL_CONFIG
 
