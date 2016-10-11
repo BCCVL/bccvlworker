@@ -18,12 +18,12 @@ node {
         ['org.bccvl.tasks', 'refs/heads/develop']
     ]
     // iterate over map and clone into current workspace subfolder
-    for (int i=0; i<subrepos.size(); i++) {
+    for (int i=0; i < subrepos.size(); i++) {
         def repo = subrepos[i][0]
         def refspec = subrepos[i][1]
         checkout(poll: false,
                  scm: [$class: 'GitSCM',
-                       branches: [[name: refspec],
+                       branches: [[name: refspec]],
                        extensions: [
                            [$class: 'RelativeTargetDirectory', relativeTargetDir: "src/${repo}"],
                            [$class: 'CleanBeforeCheckout'],
