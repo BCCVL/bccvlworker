@@ -11,22 +11,26 @@ node {
 
     // clone depentent repos
     // map sub repos to branch/tag refs
+    // has to be a list of lists otherwise we can't use plain c-style iteration.
+    //     other types of iteration usually involve an iterator which can't be serialized and would require some @NonCPS workaround
     def subrepos = [
-        'org.bccvl.movelib': 'refs/heads/develop',
-        'org.bccvl.tasks': 'refs/heads/develop'
+        ['org.bccvl.movelib', 'refs/heads/develop'],
+        ['org.bccvl.tasks', 'refs/heads/develop']
     ]
     // iterate over map and clone into current workspace subfolder
-    for (repo in subrepos) {
+    for (int i=0; i<subrepos.size(); i++) {
+        def repo = subrepos[i][0]
+        def refspec = subrepos[i][1]
         checkout(poll: false,
                  scm: [$class: 'GitSCM',
-                       branches: [[name: repo.value]],
+                       branches: [[name: refspec],
                        extensions: [
-                           [$class: 'RelativeTargetDirectory', relativeTargetDir: "src/${repo.key}"],
+                           [$class: 'RelativeTargetDirectory', relativeTargetDir: "src/${repo}"],
                            [$class: 'CleanBeforeCheckout'],
                            [$class: 'PruneStaleBranch']
                         ],
                         userRemoteConfigs: [
-                            [url: "https://github.com/BCCVL/${repo.key}"]
+                            [url: "https://github.com/BCCVL/${repo}"]
                         ]
                     ]
                 )
