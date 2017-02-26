@@ -55,12 +55,11 @@ node('docker') {
                 // get install location
                 def testdir=sh(script: 'python -c \'import os.path, org.bccvl.tasks; print os.path.dirname(org.bccvl.tasks.__file__)\'',
                                returnStdout: true).trim()
-                    // install test dependies
-                    // TODO: would be better to use some requirements file to pin versions
-                    sh "pip install org.bccvl.tasks[test]==${version}"
-                    // run tests
-                    sh "nosetests -w ${testdir} --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl"
-                }
+                // install test dependies
+                // TODO: would be better to use some requirements file to pin versions
+                sh "pip install org.bccvl.tasks[test]==${version}"
+                // run tests
+                sh "nosetests -w ${testdir} --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl"
             }
 
             // capture unit test outputs in jenkins
