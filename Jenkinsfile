@@ -32,6 +32,13 @@ node('docker') {
         // build image
         stage('Build') {
 
+            // getRequirements from last BCCVL Visualiser 'release' branch build
+            if (params.stage == 'rc' || params.stage == 'prod') {
+                getRequirements('org.bccvl.tasks')
+            } else {
+                getRequirements('org.bccvl.tasks/master')
+            }
+
             // TODO: determine dev or release build (changes pip options)
             img = docker.build("${basename}:${imgversion}",
                                "--rm --pull --no-cache --build-arg PIP_INDEX_URL=${INDEX_URL} --build-arg PIP_TRUSTED_HOST=${INDEX_HOST} --build-arg PIP_PRE=${pip_pre} . ")
@@ -59,14 +66,8 @@ node('docker') {
                 // TODO: would be better to use some requirements file to pin versions
                 sh "pip install org.bccvl.tasks[test]==${version}"
                 // run tests
-                sh "nosetests -w ${testdir} --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl"
+                sh "nosetests -w ${testdir}"
             }
-
-            // capture unit test outputs in jenkins
-            step([$class: 'JUnitResultArchiver', testResults: 'nosetests.xml'])
-
-            // capture coverage report
-            publishHTML(target:[allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
 
             // check if tests ran fine
             if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {

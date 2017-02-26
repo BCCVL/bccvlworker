@@ -13,7 +13,7 @@ ENV WORKER_CONF /etc/opt/worker
 RUN groupadd -g 415 worker && \
     useradd -u 415 -g 415 -d $WORKER_HOME -m -s /bin/bash worker
 
-COPY files/requirements.txt $WORKER_HOME/
+COPY requirements.txt $WORKER_HOME/
 
 WORKDIR $WORKER_HOME
 
