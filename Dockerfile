@@ -1,5 +1,11 @@
 FROM hub.bccvl.org.au/bccvl/workerbase:2017-02-25
 
+# configure pypi index to use
+ARG PIP_INDEX_URL
+ARG PIP_TRUSTED_HOST
+# If set, pip will look for pre releases
+ARG PIP_PRE
+
 RUN yum install -y \
     git \
     python-devel \
