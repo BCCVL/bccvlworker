@@ -1,113 +1,110 @@
 
-def imagename;
-def imagetag;
+// we need a node with docker available
+node('docker') {
 
-node {
-    // fetch source
-    stage 'Checkout'
+    // set unique image name ... including BUILD_NUMBER to support parallel builds
+    def basename = 'hub.bccvl.org.au/bccvl/bccvlworker'
+    def imgversion = env.BUILD_NUMBER
+    // variable to hold docker image object
+    def img = null
+    // variable to hold visualiser version
+    def version = null
 
-    // check out main repo
-    checkout scm
-
-    // clone depentent repos
-    // map sub repos to branch/tag refs
-    // has to be a list of lists otherwise we can't use plain c-style iteration.
-    //     other types of iteration usually involve an iterator which can't be serialized and would require some @NonCPS workaround
-    def subrepos = [
-        ['org.bccvl.movelib', 'refs/heads/develop'],
-        ['org.bccvl.tasks', 'refs/heads/develop']
-    ]
-    // iterate over map and clone into current workspace subfolder
-    for (int i=0; i < subrepos.size(); i++) {
-        def repo = subrepos[i][0]
-        def refspec = subrepos[i][1]
-        checkout(poll: false,
-                 scm: [$class: 'GitSCM',
-                       branches: [[name: refspec]],
-                       extensions: [
-                           [$class: 'RelativeTargetDirectory', relativeTargetDir: "src/${repo}"],
-                           [$class: 'CleanBeforeCheckout'],
-                           [$class: 'PruneStaleBranch']
-                        ],
-                        userRemoteConfigs: [
-                            [url: "https://github.com/BCCVL/${repo}"]
-                        ]
-                    ]
-                )
+    def pip_pre = "True"
+    if (params.stage == 'rc' || params.stage == 'prod') {
+        pip_pre = "False"
     }
 
-    // build image
-    stage 'Build Image'
-
-    imagename = 'hub.bccvl.org.au/bccvl/bccvlworker'
-    def img = docker.build(imagename)
-
-    // test image
-    stage 'Test'
-
-    docker.image(imagename).inside("-u root") {
-
-        // capture installed package versions and store in workspace
-        sh('pip freeze > versions.txt')
-
-        sh('pip install nose2 cov-core mock')
-        sh('nosetests --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl')
-
-        // capture unit test outputs in jenkins
-        step([$class: 'JUnitResultArchiver', testResults: 'nosetests.xml'])
-
-        // capture coverage report
-        publishHTML(target:[allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
+    def INDEX_HOST = env.PIP_INDEX_HOST
+    def INDEX_URL = "http://${INDEX_HOST}:3141/bccvl/dev/+simple/"
+    if (params.stage == 'rc' || params.stage == 'prod') {
+        INDEX_URL = "http://${INDEX_HOST}:3141/bccvl/prod/+simple/"
     }
 
-    imagetag = getPythonVersion("src/org.bccvl.tasks/setup.py")
+    try {
+        // fetch source
+        stage('Checkout') {
 
-    // publish image to registry
-    switch(env.BRANCH_NAME) {
-        case 'develop':
-
-            img.push('latest')
-
-        case 'master':
-        case 'qa':
-            stage 'Image Push'
-
-            img.push(imagetag)
-
-            slackSend color: 'good', message: "New Image ${imagename}:${imagetag}\n${env.JOB_URL}"
-
-            break
-    }
-
-}
-
-switch(env.BRANCH_NAME) {
-
-    case 'master':
-
-        stage 'Approve'
-
-        mail(to: 'g.weis@griffith.edu.au',
-             subject: "Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is waiting for input",
-             body: "Please go to ${env.BUILD_URL}.");
-
-        slackSend color: 'good', message: "Ready to deploy ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-
-        input 'Ready to deploy?';
-
-    case 'develop':
-    case 'qa':
-
-        stage 'Deploy'
-
-        node {
-
-            deploy("Worker", env.BRANCH_NAME, "${imagename}:${imagetag}")
-
-            slackSend color: 'good', message: "Deployed ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+            checkout scm
 
         }
 
-        break
+        // build image
+        stage('Build') {
+
+            // TODO: determine dev or release build (changes pip options)
+            img = docker.build("${basename}:${imgversion}",
+                               "--rm --pull --no-cache --build-arg PIP_INDEX_URL=${INDEX_URL} --build-arg PIP_TRUSTED_HOST=${INDEX_HOST} --build-arg PIP_PRE=${pip_pre} . ")
+
+            // get version:
+            img.inside() {
+                version = sh(script: 'python -c  \'import pkg_resources; print pkg_resources.get_distribution("org.bccvl.tasks").version\'',
+                             returnStdout: true).trim()
+            }
+            // now we know the version ... re-tag and delete old tag
+            imgversion = version.replaceAll('\\+','_') + '-' + env.BUILD_NUMBER
+            img = reTagImage(img, basename, imgversion)
+        }
+
+
+        // test image
+        stage('Test') {
+
+            // run unit tests inside built image
+            img.inside("-u root --env PIP_INDEX_URL=${INDEX_URL} --env PIP_TRUSTED_HOST=${INDEX_HOST}") {
+                // get install location
+                def testdir=sh(script: 'python -c \'import os.path, org.bccvl.tasks; print os.path.dirname(org.bccvl.tasks.__file__)\'',
+                               returnStdout: true).trim()
+                    // install test dependies
+                    // TODO: would be better to use some requirements file to pin versions
+                    sh "pip install org.bccvl.tasks[test]==${version}"
+                    // run tests
+                    sh "nosetests -w ${testdir} --with-xunit --with-coverage --cover-package=org.bccvl --cover-xml --cover-html org.bccvl"
+                }
+            }
+
+            // capture unit test outputs in jenkins
+            step([$class: 'JUnitResultArchiver', testResults: 'nosetests.xml'])
+
+            // capture coverage report
+            publishHTML(target:[allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'cover', reportFiles: 'index.html', reportName: 'Coverage Report'])
+
+            // check if tests ran fine
+            if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
+                // failed
+            }
+
+        }
+
+                // publish image to registry
+        stage('Publish') {
+
+            if (currentBuild.result == null || currentBuild.result == 'SUCCESS') {
+                // success
+
+                // if it is a dev version we push it as latest
+                if (isDevVersion(version)) {
+                    // re tag as latest
+                    img = reTagImage(img, basename, 'latest')
+                }
+                img.push()
+
+                slackSend color: 'good', message: "New Image ${img.id}\n${env.JOB_URL}"
+
+            }
+
+        }
+
+    }
+    catch (err) {
+        echo "Running catch"
+        throw err
+    }
+    finally {
+        stage('Cleanup') {
+            // clean up image
+            sh "docker rmi ${img.id}"
+        }
+    }
 
 }

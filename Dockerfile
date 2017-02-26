@@ -1,9 +1,11 @@
-FROM hub.bccvl.org.au/bccvl/workerbase:2016-10-04
+FROM hub.bccvl.org.au/bccvl/workerbase:2017-02-25
 
-RUN yum install -y git python-devel gmp-devel gdal-python exempi-devel && \
-    yum clean all
-
-RUN curl https://bootstrap.pypa.io/get-pip.py | python2.7
+RUN yum install -y \
+    git \
+    python-devel \
+    gmp-devel \
+    exempi-devel \
+    && yum clean all
 
 ENV WORKER_HOME /opt/worker
 ENV WORKER_CONF /etc/opt/worker
@@ -15,22 +17,22 @@ COPY files/requirements.txt $WORKER_HOME/
 
 WORKDIR $WORKER_HOME
 
-RUN pip2.7 --no-cache-dir install --upgrade setuptools && \
-    pip2.7 --no-cache-dir install -r requirements.txt
-
-COPY src $WORKER_HOME/
-
-RUN pip2.7 --no-cache-dir install -e org.bccvl.movelib/[http,scp,swift]
-RUN pip2.7 --no-cache-dir install -e org.bccvl.tasks/[metadata]
+RUN export PIP_INDEX_URL=${PIP_INDEX_URL} && \
+    export PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST} && \
+    export PIP_NO_CACHE_DIR=False && \
+    export PIP_PRE=${PIP_PRE} && \
+    pip install -r requirements.txt && \
+    pip install org.bccvl.tasks/[metadata,htp,scp,swift] \
 
 ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
-COPY files/bccvl.ini $BCCVL_CONFIG
+COPY ["files/bccvl.ini", \
+      "files/celeryconfig.py" \
+      $BCCVL_CONFIG]
 
 ENV WORKDIR /var/opt/worker
 RUN mkdir -p $WORKDIR && \
     chown -R worker:worker $WORKDIR
 
-COPY files/celeryconfig.py $WORKER_HOME/
 COPY files/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
