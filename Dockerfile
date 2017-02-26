@@ -22,7 +22,7 @@ RUN export PIP_INDEX_URL=${PIP_INDEX_URL} && \
     export PIP_NO_CACHE_DIR=False && \
     export PIP_PRE=${PIP_PRE} && \
     pip install -r requirements.txt && \
-    pip install org.bccvl.tasks[metadata,htp,scp,swift] \
+    pip install org.bccvl.tasks[metadata,htp,scp,swift]
 
 ENV BCCVL_CONFIG ${WORKER_CONF}/bccvl.ini
 COPY ["files/bccvl.ini", \
