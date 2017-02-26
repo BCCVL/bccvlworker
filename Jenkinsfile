@@ -102,7 +102,9 @@ node('docker') {
     finally {
         stage('Cleanup') {
             // clean up image
-            sh "docker rmi ${img.id}"
+            if (img != null) {
+                sh "docker rmi ${img.id}"
+            }
         }
     }
 
