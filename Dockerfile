@@ -20,7 +20,7 @@ RUN groupadd -g 415 worker && \
     useradd -u 415 -g 415 -d $WORKER_HOME -m -s /bin/bash worker
 
 COPY [ "requirements.txt", \
-       "files/celeryconfig.py" \
+       "files/celeryconfig.py", \
        "$WORKER_HOME/" ]
 
 WORKDIR $WORKER_HOME
