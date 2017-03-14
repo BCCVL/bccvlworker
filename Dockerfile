@@ -1,4 +1,4 @@
-FROM hub.bccvl.org.au/bccvl/workerbase:2017-02-25
+FROM hub.bccvl.org.au/bccvl/workerbase:2017-03-14
 
 # configure pypi index to use
 ARG PIP_INDEX_URL
