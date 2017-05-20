@@ -10,15 +10,15 @@ node('docker') {
     // variable to hold visualiser version
     def version = null
 
+
     def pip_pre = "True"
     if (params.stage == 'rc' || params.stage == 'prod') {
         pip_pre = "False"
     }
 
-    def INDEX_HOST = env.PIP_INDEX_HOST
-    def INDEX_URL = "http://${INDEX_HOST}:3141/bccvl/dev/+simple/"
+    def PYPI_INDEX_CRED = 'pypi_index_url_dev'
     if (params.stage == 'rc' || params.stage == 'prod') {
-        INDEX_URL = "http://${INDEX_HOST}:3141/bccvl/prod/+simple/"
+        PYPI_INDEX_CRED = 'pypi_index_url_prod'
     }
 
     try {
@@ -39,10 +39,12 @@ node('docker') {
                 getRequirements('org.bccvl.tasks/master')
             }
 
-            // TODO: determine dev or release build (changes pip options)
-            img = docker.build("${basename}:${imgversion}",
-                               "--rm --pull --no-cache --build-arg PIP_INDEX_URL=${INDEX_URL} --build-arg PIP_TRUSTED_HOST=${INDEX_HOST} --build-arg PIP_PRE=${pip_pre} . ")
-
+            withCredentials([string(credentialsId: PYPI_INDEX_CRED, variable: 'PYPI_INDEX_URL')]) {
+                docker.withRegistry('https://hub.bccvl.org.au', 'hub.bccvl.org.au') {
+                    img = docker.build("${basename}:${imgversion}",
+                                       "--rm --pull --no-cache --build-arg PIP_INDEX_URL=${PYPI_INDEX_URL} --build-arg PIP_PRE=${pip_pre} . ")
+                }
+            }
             // get version:
             img.inside() {
                 version = sh(script: 'python -c  \'import pkg_resources; print pkg_resources.get_distribution("org.bccvl.tasks").version\'',
@@ -58,15 +60,17 @@ node('docker') {
         stage('Test') {
 
             // run unit tests inside built image
-            img.inside("-u root --env PIP_INDEX_URL=${INDEX_URL} --env PIP_TRUSTED_HOST=${INDEX_HOST}") {
-                // get install location
-                def testdir=sh(script: 'python -c \'import os.path, org.bccvl.tasks; print os.path.dirname(org.bccvl.tasks.__file__)\'',
-                               returnStdout: true).trim()
-                // install test dependies
-                // TODO: would be better to use some requirements file to pin versions
-                sh "pip install org.bccvl.tasks[test]==${version}"
-                // run tests
-                sh "nosetests -w ${testdir}"
+            withCredentials([string(credentialsId: PYPI_INDEX_CRED, variable: 'PYPI_INDEX_URL')]) {
+                img.inside("-u root --env PIP_INDEX_URL=${PYPI_INDEX_URL}") {
+                    // get install location
+                    def testdir=sh(script: 'python -c \'import os.path, org.bccvl.tasks; print os.path.dirname(org.bccvl.tasks.__file__)\'',
+                                   returnStdout: true).trim()
+                    // install test dependies
+                    // TODO: would be better to use some requirements file to pin versions
+                    sh "pip install org.bccvl.tasks[test]==${version}"
+                    // run tests
+                    sh "nosetests -w ${testdir}"
+                }
             }
 
             // check if tests ran fine
@@ -87,7 +91,9 @@ node('docker') {
                     // re tag as latest
                     img = reTagImage(img, basename, 'latest')
                 }
-                img.push()
+                docker.withRegistry('https://hub.bccvl.org.au', 'hub.bccvl.org.au') {
+                    img.push()
+                }
 
                 slackSend color: 'good', message: "New Image ${img.id}\n${env.JOB_URL}"
 
