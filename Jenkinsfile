@@ -34,7 +34,7 @@ node('docker') {
 
             // getRequirements from last BCCVL Visualiser 'release' branch build
             if (params.stage == 'rc' || params.stage == 'prod') {
-                getRequirements('org.bccvl.tasks')
+                getRequirements('org.bccvl.tasks_tags')
             } else {
                 getRequirements('org.bccvl.tasks/master')
             }
