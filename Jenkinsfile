@@ -69,7 +69,7 @@ node('docker') {
                                    returnStdout: true).trim()
                     // install test dependies
                     // TODO: would be better to use some requirements file to pin versions
-                    sh "pip install org.bccvl.tasks[test]==${version}"
+                    sh "pip install org.bccvl.tasks[test]==${version} nose"
                     // run tests
                     sh "nosetests -w ${testdir}"
                 }
