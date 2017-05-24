@@ -12,12 +12,14 @@ node('docker') {
 
 
     def pip_pre = "True"
-    if (params.stage == 'rc' || params.stage == 'prod') {
+    if (params.stage == 'prod') {
+        // no pre releases allowed for prod build
         pip_pre = "False"
     }
 
     def PYPI_INDEX_CRED = 'pypi_index_url_dev'
     if (params.stage == 'rc' || params.stage == 'prod') {
+        // no dev pre releases for rc and prod
         PYPI_INDEX_CRED = 'pypi_index_url_prod'
     }
 
