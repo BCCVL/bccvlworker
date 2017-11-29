@@ -60,14 +60,11 @@ node('docker') {
             // run unit tests inside built image
             withCredentials([string(credentialsId: PYPI_INDEX_CRED, variable: 'PYPI_INDEX_URL')]) {
                 img.inside("-u root --env PIP_INDEX_URL=${PYPI_INDEX_URL}") {
-                    // get install location
-                    def testdir=sh(script: 'python -c \'import os.path, org.bccvl.tasks; print os.path.dirname(org.bccvl.tasks.__file__)\'',
-                                   returnStdout: true).trim()
                     // install test dependies
                     // TODO: would be better to use some requirements file to pin versions
-                    sh "pip install org.bccvl.tasks[test]==${version} nose"
+                    sh "pip install org.bccvl.tasks[test]==${version} pytest mock"
                     // run tests
-                    sh "nosetests -w ${testdir}"
+                    sh "pytest --pyarg org.bccvl.tasks"
                 }
             }
 
@@ -83,12 +80,6 @@ node('docker') {
 
             if (currentBuild.result == null || currentBuild.result == 'SUCCESS') {
                 // success
-
-                // if it is a dev version we push it as latest
-                if (isDevVersion(version)) {
-                    // re tag as latest
-                    img = reTagImage(img, basename, 'latest')
-                }
                 docker.withRegistry('https://hub.bccvl.org.au', 'hub.bccvl.org.au') {
                     img.push()
                 }
