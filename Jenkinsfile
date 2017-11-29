@@ -62,7 +62,7 @@ node('docker') {
                 img.inside("-u root --env PIP_INDEX_URL=${PYPI_INDEX_URL}") {
                     // install test dependies
                     // TODO: would be better to use some requirements file to pin versions
-                    sh "pip install org.bccvl.tasks[test]==${version} pytest mock"
+                    sh "pip install org.bccvl.tasks[test]==${version} pytest"
                     // run tests
                     sh "pytest --pyarg org.bccvl.tasks"
                 }
