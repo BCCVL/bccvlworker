@@ -18,6 +18,9 @@ node('docker') {
         pip_pre = "False"
         PYPI_INDEX_CRED = 'pypi_index_url_prod'
     }
+    if (params.stage == 'dev') {
+        imgversion = 'latest'
+    }
 
     try {
         // fetch source
