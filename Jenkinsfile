@@ -52,8 +52,10 @@ node('docker') {
                              returnStdout: true).trim()
             }
             // now we know the version ... re-tag and delete old tag
-            imgversion = version.replaceAll('\\+','_') + '-' + env.BUILD_NUMBER
-            img = reTagImage(img, basename, imgversion)
+            if (params.stage != 'dev') {
+                imgversion = version.replaceAll('\\+','_') + '-' + env.BUILD_NUMBER
+                img = reTagImage(img, basename, imgversion)
+            }
         }
 
 
