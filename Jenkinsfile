@@ -80,7 +80,7 @@ node('docker') {
 
         }
 
-                // publish image to registry
+        // publish image to registry
         stage('Publish') {
 
             if (currentBuild.result == null || currentBuild.result == 'SUCCESS') {
